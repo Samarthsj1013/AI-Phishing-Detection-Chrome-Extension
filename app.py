@@ -128,7 +128,7 @@ def analyze():
         base = url.split('?')[0]
         params = url.split('?')[1]
         clean_params = '&'.join(p for p in params.split('&')
-                                if not any(t in p.lower() for t in ['zx=', 'utm_', 'fbclid', 'gclid']))
+                                if not any(t in p.lower() for t in ['zx=', 'utm_', 'fbclid', 'gclid', 'tab=', 'ogbl']))
         url = base + ('?' + clean_params if clean_params else '')
 
     # Handle local/internal URLs
