@@ -5,6 +5,9 @@ import re
 import tldextract
 import shap
 import numpy as np
+import requests
+import os
+import base64
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -24,6 +27,40 @@ le = joblib.load("model/label_encoder.pkl")
 FEATURE_NAMES = joblib.load("model/feature_names.pkl")
 
 explainer = shap.TreeExplainer(model)
+
+VT_API_KEY = os.environ.get("VIRUSTOTAL_API_KEY", "")
+
+# ── VirusTotal check ──────────────────────────────────────────
+def check_virustotal(url):
+    try:
+        if not VT_API_KEY:
+            return None
+
+        url_id = base64.urlsafe_b64encode(url.encode()).decode().strip("=")
+        headers = {"x-apikey": VT_API_KEY}
+
+        response = requests.get(
+            f"https://www.virustotal.com/api/v3/urls/{url_id}",
+            headers=headers,
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            stats = data["data"]["attributes"]["last_analysis_stats"]
+            malicious = stats.get("malicious", 0)
+            suspicious = stats.get("suspicious", 0)
+            total = sum(stats.values())
+            return {
+                "malicious": malicious,
+                "suspicious": suspicious,
+                "total": total,
+                "flagged": malicious > 0 or suspicious > 2
+            }
+        return None
+    except Exception as e:
+        print(f"VirusTotal error: {e}")
+        return None
 
 # ── Feature extraction ────────────────────────────────────────
 def extract_features(url):
@@ -103,8 +140,6 @@ def get_shap_reasons(features, prediction):
 
     except Exception as e:
         print(f"SHAP error: {e}")
-        import traceback
-        traceback.print_exc()
         return []
 
 # ── Routes ────────────────────────────────────────────────────
@@ -150,20 +185,38 @@ def analyze():
         phishing_confidence = round(float(prob[1]) * 100, 2)
         safe_confidence = round(float(prob[0]) * 100, 2)
 
-        # Raise threshold to 70% to reduce false positives
         result = "Phishing" if phishing_confidence >= 70 else "Safe"
         risk_level = "none" if result == "Safe" else (
             "high" if phishing_confidence >= 80 else "medium"
         )
 
+        # VirusTotal check
+        vt_result = check_virustotal(url)
+        vt_flagged = vt_result and vt_result["flagged"]
+
+        # If VT says malicious, override to phishing
+        if vt_flagged and result == "Safe":
+            result = "Phishing"
+            risk_level = "high"
+            phishing_confidence = max(phishing_confidence, 85.0)
+
         reasons = get_shap_reasons(features, prediction) if result == "Phishing" else []
+
+        # Add VT reason if flagged
+        if vt_flagged and vt_result:
+            reasons.insert(0, {
+                "reason": f"Flagged by {vt_result['malicious']} security vendors (VirusTotal)",
+                "impact": "high",
+                "shap_value": 0.0
+            })
 
         return jsonify({
             "url": url,
             "result": result,
             "risk_level": risk_level,
             "confidence": phishing_confidence if result == "Phishing" else safe_confidence,
-            "reasons": reasons
+            "reasons": reasons,
+            "virustotal": vt_result
         })
 
     except Exception as e:
