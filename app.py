@@ -62,13 +62,11 @@ def get_shap_reasons(features, prediction):
     try:
         shap_values = explainer.shap_values(np.array([features]))
 
-        # Flatten whatever structure SHAP returns
         if isinstance(shap_values, list):
             raw = shap_values[1][0]
         else:
             raw = shap_values[0]
 
-        # Force into a flat float list
         values = [float(v) if not isinstance(v, (list, np.ndarray)) else float(np.array(v).flatten()[1]) for v in raw]
 
         feature_impacts = list(zip(FEATURE_NAMES, values, features))
@@ -124,15 +122,16 @@ def analyze():
         return jsonify({"error": "No URL provided"}), 400
 
     url = data.get("url", "").strip()
-    # Strip tracking parameters that cause false positives
+
+    # Strip tracking parameters
     if '?' in url:
         base = url.split('?')[0]
         params = url.split('?')[1]
-        # Keep only params that aren't pure tracking tokens
-        clean_params = '&'.join(p for p in params.split('&') 
+        clean_params = '&'.join(p for p in params.split('&')
                                 if not any(t in p.lower() for t in ['zx=', 'utm_', 'fbclid', 'gclid']))
         url = base + ('?' + clean_params if clean_params else '')
 
+    # Handle local/internal URLs
     if any(x in url for x in ['127.0.0.1', 'localhost', 'chrome://', 'chrome-extension://']):
         return jsonify({
             "url": url,
@@ -151,15 +150,13 @@ def analyze():
         phishing_confidence = round(float(prob[1]) * 100, 2)
         safe_confidence = round(float(prob[0]) * 100, 2)
 
-        # le.classes_ = ['legitimate', 'phishing'], so phishing = index 1
-        result = "Phishing" if le.classes_[prediction] == 'phishing' else "Safe"
+        # Raise threshold to 70% to reduce false positives
+        result = "Phishing" if phishing_confidence >= 70 else "Safe"
+        risk_level = "none" if result == "Safe" else (
+            "high" if phishing_confidence >= 80 else "medium"
+        )
 
-        if result == "Phishing":
-            risk_level = "high" if phishing_confidence >= 80 else "medium" if phishing_confidence >= 60 else "low"
-        else:
-            risk_level = "none"
-
-        reasons = get_shap_reasons(features, prediction)
+        reasons = get_shap_reasons(features, prediction) if result == "Phishing" else []
 
         return jsonify({
             "url": url,
