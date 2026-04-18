@@ -1,22 +1,25 @@
 # PhishGuard AI 🛡️
 
-A Chrome Extension that detects phishing URLs in real time using a machine learning model I built and trained from scratch.
+Chrome extension that tells you if a website is trying to phish you — before you get got.
 
-## What it does
-When you're on any website, click the extension and it tells you whether the URL is safe or suspicious — along with the specific reasons why it was flagged.
+## The idea
+I kept seeing news about people falling for phishing links, and most browser warnings only catch sites that are already reported. I wanted something that could catch suspicious URLs before they're even in any database — using ML to analyze the URL structure itself.
 
-## How it works
-The extension sends the current tab's URL to a local Flask API, which runs it through a Random Forest model and returns a prediction with confidence score. The reasons shown aren't hardcoded — they come from SHAP values, which measure how much each feature actually pushed the model toward its decision.
+## What actually happens when you click scan
+1. The extension grabs the current tab's URL
+2. Sends it to my Flask API running on Render
+3. API runs it through a Random Forest model I trained on 11,430 URLs
+4. Simultaneously checks it against VirusTotal (70+ security vendors)
+5. Returns a verdict in under a second with the specific reasons
 
 ## Stack
-- Random Forest classifier (scikit-learn)
-- SHAP TreeExplainer for explainability
-- Flask REST API
+- scikit-learn (Random Forest)
+- SHAP for explainability
+- VirusTotal API
+- Flask + Render
 - Chrome Extension (Manifest V3)
 
-## Model metrics
-Trained on 11,430 URLs (balanced — half phishing, half legitimate)
-
+## Numbers
 | Metric | Score |
 |--------|-------|
 | Accuracy | 90.07% |
@@ -25,23 +28,23 @@ Trained on 11,430 URLs (balanced — half phishing, half legitimate)
 | F1 Score | 90.25% |
 | 5-Fold CV F1 | 90.21% ± 0.57% |
 
-## Running it locally
+Tried XGBoost too — got 90.11% F1 vs Random Forest's 90.25%, so kept RF.
+
+## Honest limitations
+- URL-only analysis means a phisher with a clean domain and no suspicious patterns can slip through
+- The free VirusTotal tier gives 500 requests/day which is fine for personal use but wouldn't scale
+- Render free tier has a cold start delay of ~50 seconds if the API hasn't been hit in 15 minutes
+
+## Running locally
 
 ```bash
-# Install dependencies
-pip install flask flask-cors scikit-learn pandas numpy joblib shap tldextract matplotlib seaborn
+pip install flask flask-cors scikit-learn pandas numpy joblib shap tldextract requests flask-limiter
 
-# Train the model (only needed once)
-python train.py
-
-# Start the backend
+python train.py  # only needed once
 python app.py
 ```
 
-Then go to `chrome://extensions/`, enable Developer Mode, click Load unpacked, and select the `extension/` folder.
-
-## What I learned building this
-Getting SHAP to work with RandomForest was trickier than expected — the shap_values output is a nested list structure that needed flattening before I could rank features by their actual contribution. The other thing that took time was false positives — URLs like Google's tracking parameters were triggering the model until I stripped them before analysis.
+Load the `extension/` folder in `chrome://extensions/` with Developer Mode on.
 
 ## Dataset
-[Web Page Phishing Detection Dataset on Kaggle](https://www.kaggle.com/datasets/shashwatwork/web-page-phishing-detection-dataset)
+[Web Page Phishing Detection Dataset — Kaggle](https://www.kaggle.com/datasets/shashwatwork/web-page-phishing-detection-dataset)
