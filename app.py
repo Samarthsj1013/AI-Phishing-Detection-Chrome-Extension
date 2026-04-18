@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import joblib
 import re
 import tldextract
@@ -13,6 +15,12 @@ warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 @app.after_request
 def after_request(response):
@@ -148,6 +156,7 @@ def health():
     return jsonify({"status": "running", "model": "PhishGuard AI v2"})
 
 @app.route("/analyze", methods=["POST", "OPTIONS"])
+@limiter.limit("30 per minute")
 def analyze():
     if request.method == "OPTIONS":
         return jsonify({"status": "ok"})
