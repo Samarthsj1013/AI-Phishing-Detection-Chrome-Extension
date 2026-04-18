@@ -1,5 +1,4 @@
-const API_URL = "http://127.0.0.1:5000/analyze";
-
+const API_URL = "https://ai-phishing-detection-chrome-extension-1.onrender.com/analyze";
 function truncateURL(url, maxLen = 45) {
   return url.length > maxLen ? url.substring(0, maxLen) + "..." : url;
 }
