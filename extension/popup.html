@@ -1,16 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>PhishGuard</title>
+  <meta charset="UTF-8">
+  <title>PhishGuard AI</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>PhishGuard AI</h2>
-  <button id="scanBtn">Scan Website</button>
+  <div class="header">
+    <div class="logo">🛡️ PhishGuard AI</div>
+    <div class="subtitle">Real-time Phishing Detection</div>
+  </div>
 
-  <div id="result"></div>
-  <div id="confidence"></div>
-  <ul id="reasons"></ul>
+  <div class="url-box" id="urlBox">
+    <span id="urlText">Fetching URL...</span>
+  </div>
+
+  <button class="scan-btn" id="scanBtn">
+    <span id="btnText">🔍 Scan Website</span>
+  </button>
+
+  <div id="resultCard" class="result-card hidden">
+    <div class="result-header">
+      <span id="resultIcon"></span>
+      <span id="resultText"></span>
+    </div>
+    <div class="confidence-bar-wrapper">
+      <div class="confidence-label">
+        <span>Risk Level</span>
+        <span id="confidenceValue"></span>
+      </div>
+      <div class="confidence-bar">
+        <div class="confidence-fill" id="confidenceFill"></div>
+      </div>
+    </div>
+    <div id="reasonsSection" class="reasons-section hidden">
+      <div class="reasons-title">Why flagged:</div>
+      <ul id="reasonsList"></ul>
+    </div>
+  </div>
+
+  <div id="errorMsg" class="error-msg hidden">
+    ⚠️ Could not connect to backend. Make sure app.py is running.
+  </div>
+
+  <div class="footer">v2.0 · ML-Powered</div>
 
   <script src="popup.js"></script>
 </body>
