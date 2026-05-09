@@ -209,3 +209,26 @@ body {
 .hidden {
   display: none !important;
 }
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  font-size: 10px;
+  color: #444;
+}
+
+.history-btn {
+  background: none;
+  border: 1px solid #2a2a4a;
+  color: #888;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.history-btn:hover {
+  border-color: #7c83fd;
+  color: #7c83fd;
+}

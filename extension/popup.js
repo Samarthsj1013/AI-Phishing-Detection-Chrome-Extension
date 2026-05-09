@@ -1,4 +1,5 @@
 const API_URL = "https://ai-phishing-detection-chrome-extension-1.onrender.com/analyze";
+
 function truncateURL(url, maxLen = 45) {
   return url.length > maxLen ? url.substring(0, maxLen) + "..." : url;
 }
@@ -46,6 +47,19 @@ document.getElementById("scanBtn").addEventListener("click", () => {
         document.getElementById("confidenceValue").textContent = `${conf}%`;
         document.getElementById("confidenceFill").style.width = `${conf}%`;
 
+        // Save to history
+        chrome.storage.local.get(['scanHistory'], (result) => {
+          const history = result.scanHistory || [];
+          history.push({
+            url: url.length > 60 ? url.substring(0, 60) + '...' : url,
+            result: data.result,
+            confidence: data.confidence,
+            time: new Date().toLocaleTimeString()
+          });
+          if (history.length > 20) history.shift();
+          chrome.storage.local.set({ scanHistory: history });
+        });
+
         // Reasons (SHAP-based)
         const reasonsSection = document.getElementById("reasonsSection");
         const reasonsList = document.getElementById("reasonsList");
@@ -70,4 +84,9 @@ document.getElementById("scanBtn").addEventListener("click", () => {
         console.error(err);
       });
   });
+});
+
+// History button
+document.getElementById('historyBtn').addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('history.html') });
 });

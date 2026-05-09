@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PhishGuard AI - History</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { width: 400px; min-height: 300px; }
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border-bottom: 1px solid #2a2a4a;
+    }
+    .history-title { color: #7c83fd; font-weight: 700; font-size: 15px; }
+    .clear-btn {
+      background: none;
+      border: 1px solid #ef444444;
+      color: #ef4444;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .history-list { padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .history-item {
+      background: #1a1a2e;
+      border-radius: 8px;
+      padding: 8px 12px;
+      border-left: 3px solid #2a2a4a;
+      font-size: 11px;
+    }
+    .history-item.phishing { border-left-color: #ef4444; }
+    .history-item.safe { border-left-color: #22c55e; }
+    .history-url { color: #ccc; word-break: break-all; margin-bottom: 4px; }
+    .history-meta { display: flex; justify-content: space-between; color: #666; font-size: 10px; }
+    .history-result.phishing { color: #ef4444; font-weight: 600; }
+    .history-result.safe { color: #22c55e; font-weight: 600; }
+    .empty-msg { text-align: center; color: #444; padding: 40px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="history-header">
+    <div class="history-title">🛡️ Scan History</div>
+    <button class="clear-btn" id="clearBtn">Clear All</button>
+  </div>
+  <div class="history-list" id="historyList"></div>
+  <script src="history.js"></script>
+</body>
+</html>
