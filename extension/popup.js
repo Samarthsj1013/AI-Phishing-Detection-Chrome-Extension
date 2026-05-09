@@ -86,7 +86,26 @@ document.getElementById("scanBtn").addEventListener("click", () => {
   });
 });
 
-// History button
+// History button - reuse existing tab if already open
 document.getElementById('historyBtn').addEventListener('click', () => {
-  chrome.tabs.create({ url: chrome.runtime.getURL('history.html') });
+  const historyUrl = chrome.runtime.getURL('history.html');
+  chrome.tabs.query({}, (tabs) => {
+    const existing = tabs.find(t => t.url === historyUrl);
+    if (existing) {
+      chrome.tabs.update(existing.id, { active: true });
+    } else {
+      chrome.tabs.create({ url: historyUrl });
+    }
+  });
 });
+
+// Update history count on badge
+function updateHistoryCount() {
+  chrome.storage.local.get(['scanHistory'], (result) => {
+    const count = (result.scanHistory || []).length;
+    const btn = document.getElementById('historyBtn');
+    btn.textContent = count > 0 ? `📋 History (${count})` : '📋 History';
+  });
+}
+
+updateHistoryCount();
