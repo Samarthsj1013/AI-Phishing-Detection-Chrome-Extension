@@ -63,7 +63,7 @@ def check_virustotal(url):
                 "malicious": malicious,
                 "suspicious": suspicious,
                 "total": total,
-                "flagged": malicious > 0 or suspicious > 2
+                "flagged": malicious >= 3 or suspicious > 5
             }
         return None
     except Exception as e:

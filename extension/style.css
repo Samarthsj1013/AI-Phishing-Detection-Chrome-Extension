@@ -232,3 +232,32 @@ body {
   border-color: #7c83fd;
   color: #7c83fd;
 }
+
+.report-section {
+  padding: 8px 14px 10px;
+  background: #0d0d1a;
+  border-top: 1px solid #2a2a4a;
+}
+
+.report-btn {
+  background: none;
+  border: 1px solid #2a2a4a;
+  color: #666;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.report-btn:hover {
+  border-color: #f97316;
+  color: #f97316;
+}
+
+.report-confirm {
+  text-align: center;
+  color: #22c55e;
+  font-size: 11px;
+  padding-top: 4px;
+}
